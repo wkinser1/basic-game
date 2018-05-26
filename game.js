@@ -5,6 +5,7 @@ var badges;
 var stars;
 var poisons;
 var cursors;
+var coin;
 var jumpButton;
 var scoreText;
 var livesText;
@@ -18,18 +19,27 @@ var winningScore = 100;
 function createStars() {
     stars = game.add.physicsGroup();
 
-    starCreate(425, 100, 'star');
-    starCreate(315, 100, 'star');
-    starCreate(175, 200, 'star');
+    starCreate(750, 50, 'star');
+    starCreate(315, 225, 'star');
+    starCreate(25, 150, 'star');
+    starCreate(225, 75, 'star');
+    starCreate(25, 300, 'star');
 
 }
+
+function createCoins() {
+    coins = game.add.physicsGroup();
+
+    coinCreate(75, 30, 'coin');
+}
+
 
 function createPoisons() {
     poisons = game.add.physicsGroup();
 
     poisonCreate(675, 275, 'poison');
-    poisonCreate(450, 375, 'poison');
-    poisonCreate(375, 475, 'poison');
+    poisonCreate(450, 225, 'poison');
+    poisonCreate(400, 450, 'poison');
 
 }
 
@@ -37,12 +47,17 @@ function createPoisons() {
 function createPlatforms() {
     platforms = game.add.physicsGroup();
 
-    platforms.create(300, 150, 'platform');
-    platforms.create(400, 250, 'platform');
-    platforms.create(100, 250, 'platform');
-    platforms.create(500, 350, 'platform');
-    platforms.create(400, 450, 'platform');
-    platforms.create(300, 550, 'platform');
+//top to bottom
+    platforms.create(450, 150, 'platform');
+    platforms.create(425, 300, 'platform');
+    platforms.create(600, 400, 'platform');
+    platforms.create(350, 500, 'platform');
+    
+// wall platforms, top to bottom
+    
+    platforms.create(0, 215, 'platform2');
+    platforms.create(0, 350, 'platform2');
+    
 
     platforms.setAll('body.immovable', true);
 }
@@ -51,6 +66,13 @@ function starCreate(left, top, starImage) {
     var star = stars.create(left, top, starImage);
     star.animations.add('spin');
     star.animations.play('spin', 8, true);
+}
+
+function coinCreate(left, top, coinImage) {
+    var coin = coins.create(left, top, coinImage);
+    coin.animations.add('spin');
+    coin.animations.play('spin', 8, true);
+
 }
 
 function poisonCreate(left, top, poisonImage) {
@@ -67,8 +89,28 @@ function starCollect(player, star) {
     }
 }
 
+function coinCollect(player, coin) {
+    coin.kill();
+    currentScore = currentScore + 40;
+    if (currentScore === winningScore) {
+        player.kill();
+        won = true;
+    }
+
+    lives = lives + 1;
+    if (lives === 5) {
+        player.kill();
+        won = true;
+    }
+}
+
 function poisonCollect(player, poison) {
     poison.kill();
+    currentScore = currentScore - 20;
+    if (currentScore === winningScore) {
+        won = true;
+    }
+
     lives = lives - 1;
     if (lives === 0) {
         player.kill();
@@ -86,6 +128,7 @@ window.onload = function () {
 
         //Load images
         game.load.image('platform', 'platform_1.png');
+        game.load.image('platform2', 'platform_2.png');
         //Load spritesheets
         game.load.spritesheet('player', 'mikethefrog.png', 32, 32);
         game.load.spritesheet('coin', 'coin.png', 36, 44);
@@ -103,11 +146,12 @@ window.onload = function () {
         game.physics.arcade.enable(player);
 
         player.body.collideWorldBounds = true;
-        player.body.gravity.y = 500;
+        player.body.gravity.y = 800;
 
         createStars();
         createPoisons();
         createPlatforms();
+        createCoins();
 
         cursors = game.input.keyboard.createCursorKeys();
         jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -126,6 +170,7 @@ window.onload = function () {
         game.physics.arcade.collide(player, platforms);
         game.physics.arcade.overlap(player, stars, starCollect);
         game.physics.arcade.overlap(player, poisons, poisonCollect);
+        game.physics.arcade.overlap(player, coins, coinCollect);
 
         player.body.velocity.x = 0;
 
@@ -136,7 +181,7 @@ window.onload = function () {
         }
         else if (cursors.right.isDown) {
             player.animations.play('walk', 10, true);
-            player.body.velocity.x = 350;
+            player.body.velocity.x = 500;
             player.scale.x = 1;
         }
         else {
