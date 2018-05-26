@@ -1,160 +1,162 @@
-// define variables
 var game;
 var player;
 var platforms;
 var badges;
-var items;
+var stars;
+var poisons;
 var cursors;
 var jumpButton;
-var text;
-var winningMessage;
+var scoreText;
+var livesText;
+var finalMessage;
 var won = false;
+var gameOver = false;
 var currentScore = 0;
+var lives = 3;
 var winningScore = 100;
 
-// add collectable items to the game
-function addItems() {
-  items = game.add.physicsGroup();
-  createItem(375, 300, 'coin');
-  createItem(575, 500, 'coin');
-  createItem(225, 500, 'coin');
-  createItem(475, 300, 'coin');
-  createItem(50, 300, 'coin');
-  createItem(225, 175, 'coin');
-  createItem(10, 75, 'poison');
-  createItem(200, 125, 'poison');
-  createItem(575, 250, 'poison');
-  createItem(475, 100, 'coin');
-  createItem(25, 200, 'coin');
-  createItem(750, 10, 'star');
+function createStars() {
+    stars = game.add.physicsGroup();
+
+    starCreate(425, 100, 'star');
+    starCreate(315, 100, 'star');
+    starCreate(175, 200, 'star');
+
 }
 
-// add platforms to the game
-function addPlatforms() {
-  platforms = game.add.physicsGroup();
-  platforms.create(450, 550, 'platform2');
-  platforms.create(100, 550, 'platform');
-  platforms.create(300, 450, 'platform2');
-  platforms.create(500, 350, 'platform');
-  platforms.create(100, 350, 'platform');
-  platforms.create(300, 250, 'platform2');
-  platforms.create(75, 100, 'platform');
-  platforms.create(500, 150, 'platform');
-  platforms.setAll('body.immovable', true);
+function createPoisons() {
+    poisons = game.add.physicsGroup();
+
+    poisonCreate(675, 275, 'poison');
+    poisonCreate(450, 375, 'poison');
+    poisonCreate(375, 475, 'poison');
+
 }
 
-// create a single animated item and add to screen
-function createItem(left, top, image) {
-  var item = items.create(left, top, image);
-  item.animations.add('spin');
-  item.animations.play('spin', 10, true);
+
+function createPlatforms() {
+    platforms = game.add.physicsGroup();
+
+    platforms.create(300, 150, 'platform');
+    platforms.create(400, 250, 'platform');
+    platforms.create(100, 250, 'platform');
+    platforms.create(500, 350, 'platform');
+    platforms.create(400, 450, 'platform');
+    platforms.create(300, 550, 'platform');
+
+    platforms.setAll('body.immovable', true);
 }
 
-// create the winning badge and add to screen
-function createBadge() {
-  badges = game.add.physicsGroup();
-  var badge = badges.create(750, 400, 'badge');
-  badge.animations.add('spin');
-  badge.animations.play('spin', 10, true);
+function starCreate(left, top, starImage) {
+    var star = stars.create(left, top, starImage);
+    star.animations.add('spin');
+    star.animations.play('spin', 8, true);
 }
 
-// when the player collects an item on the screen
-function itemHandler(player, item) {
-  item.kill();
-  if (item.key === 'coin')  {
-   currentScore = currentScore + 10;
-  } else if (item.key === 'poison') {
-    currentScore = currentScore - 25;
-  } else if (item.key === 'star') {
-    currentScore = currentScore + 25;
-  }
-  
-  if (currentScore === winningScore) {
-      createBadge();
-  }
+function poisonCreate(left, top, poisonImage) {
+    var poison = poisons.create(left, top, poisonImage);
+    poison.animations.add('bubble');
+    poison.animations.play('bubble', 8, true);
 }
 
-// when the player collects the badge at the end of the game
-function badgeHandler(player, badge) {
-  badge.kill();
-  won = true;
+function starCollect(player, star) {
+    star.kill();
+    currentScore = currentScore + 20;
+    if (currentScore === winningScore) {
+        won = true;
+    }
 }
 
-// setup game when the web page loads
+function poisonCollect(player, poison) {
+    poison.kill();
+    lives = lives - 1;
+    if (lives === 0) {
+        player.kill();
+        gameOver = true;
+    }
+}
+
 window.onload = function () {
-  game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
-  
-  // before the game begins
-  function preload() {
-    game.stage.backgroundColor = '#5db1ad';
-    
-    //Load images
-    game.load.image('platform', 'platform_1.png');
-    game.load.image('platform2', 'platform_2.png');
-    
-    //Load spritesheets
-    game.load.spritesheet('player', 'chalkers.png', 48, 62);
-    game.load.spritesheet('coin', 'coin.png', 36, 44);
-    game.load.spritesheet('badge', 'badge.png', 42, 54);
-    game.load.spritesheet('poison', 'poison.png', 32, 32);
-    game.load.spritesheet('star', 'star.png', 32, 32);
-  }
 
-  // initial game set up
-  function create() {
-    player = game.add.sprite(50, 600, 'player');
-    player.animations.add('walk');
-    player.anchor.setTo(0.5, 1);
-    game.physics.arcade.enable(player);
-    player.body.collideWorldBounds = true;
-    player.body.gravity.y = 500;
+    game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
-    addItems();
-    addPlatforms();
+    function preload() {
 
-    cursors = game.input.keyboard.createCursorKeys();
-    jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    text = game.add.text(16, 16, "SCORE: " + currentScore, { font: "bold 24px Arial", fill: "white" });
-    winningMessage = game.add.text(game.world.centerX, 275, "", { font: "bold 48px Arial", fill: "white" });
-    winningMessage.anchor.setTo(0.5, 1);
-  }
+        game.stage.backgroundColor = '#89889c';
 
-  // while the game is running
-  function update() {
-    text.text = "SCORE: " + currentScore;
-    game.physics.arcade.collide(player, platforms);
-    game.physics.arcade.overlap(player, items, itemHandler);
-    game.physics.arcade.overlap(player, badges, badgeHandler);
-    player.body.velocity.x = 0;
-
-    // is the left cursor key presssed?
-    if (cursors.left.isDown) {
-      player.animations.play('walk', 10, true);
-      player.body.velocity.x = -300;
-      player.scale.x = - 1;
+        //Load images
+        game.load.image('platform', 'platform_1.png');
+        //Load spritesheets
+        game.load.spritesheet('player', 'mikethefrog.png', 32, 32);
+        game.load.spritesheet('coin', 'coin.png', 36, 44);
+        game.load.spritesheet('badge', 'badge.png', 42, 54);
+        game.load.spritesheet('poison', 'poison.png', 32, 32);
+        game.load.spritesheet('star', 'star.png', 32, 32);
     }
-    // is the right cursor key pressed?
-    else if (cursors.right.isDown) {
-      player.animations.play('walk', 10, true);
-      player.body.velocity.x = 300;
-      player.scale.x = 1;
-    }
-    // player doesn't move
-    else {
-      player.animations.stop();
-    }
-    
-    if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
-      player.body.velocity.y = -400;
-    }
-    // when the player winw the game
-    if (won) {
-      winningMessage.text = "YOU WIN!!!";
-    }
-  }
 
-  function render() {
+    function create() {
 
-  }
+        player = game.add.sprite(150, 600, 'player');
+        player.animations.add('walk');
+        player.anchor.setTo(0.5, 1);
+
+        game.physics.arcade.enable(player);
+
+        player.body.collideWorldBounds = true;
+        player.body.gravity.y = 500;
+
+        createStars();
+        createPoisons();
+        createPlatforms();
+
+        cursors = game.input.keyboard.createCursorKeys();
+        jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+        scoreText = game.add.text(16, 16, "SCORE: " + currentScore, { font: "24px Arial", fill: "white" });
+        livesText = game.add.text(685, 16, "LIVES: " + lives, { font: "24px Arial", fill: "white" });
+
+        finalMessage = game.add.text(game.world.centerX, 250, "", { font: "48px Arial", fill: "white" });
+        finalMessage.anchor.setTo(0.5, 1);
+    }
+
+    function update() {
+        scoreText.text = "SCORE: " + currentScore;
+        livesText.text = "LIVES: " + lives;
+
+        game.physics.arcade.collide(player, platforms);
+        game.physics.arcade.overlap(player, stars, starCollect);
+        game.physics.arcade.overlap(player, poisons, poisonCollect);
+
+        player.body.velocity.x = 0;
+
+        if (cursors.left.isDown) {
+            player.animations.play('walk', 10, true);
+            player.body.velocity.x = -350;
+            player.scale.x = - 1;
+        }
+        else if (cursors.right.isDown) {
+            player.animations.play('walk', 10, true);
+            player.body.velocity.x = 350;
+            player.scale.x = 1;
+        }
+        else {
+            player.animations.stop();
+        }
+
+        if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+            player.body.velocity.y = -400;
+        }
+        if (won) {
+            finalMessage.text = "YOU WIN!!!";
+        }
+        if (gameOver) {
+            finalMessage.text = "GAME OVER!!!";
+        }
+
+    }
+
+    function render() {
+
+    }
 
 };
